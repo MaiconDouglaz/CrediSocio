@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Pagamento</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <style>
+        :root { --primaria: #2E8B57; --preto-deep: #0F172A; --branco: #FFFFFF; --cinza-texto: #64748B; --fundo: #F4F6F8; }
+        body { font-family: 'Inter', sans-serif; background: var(--fundo); color: var(--preto-deep); display: flex; justify-content: center; min-height: 100vh; margin: 0; }
+        .container { width: 100%; max-width: 400px; padding: 24px; box-sizing: border-box; }
+        header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .btn-voltar { background: var(--branco); border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; }
+        .input-card { background: var(--branco); padding: 16px; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--cinza-texto); margin-bottom: 8px; }
+        input { border: none; outline: none; font-size: 1.5rem; width: 100%; font-family: 'Inter', sans-serif; font-weight: bold; color: var(--primaria); }
+        .btn-confirmar { width: 100%; background: var(--primaria); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 1rem; transition: opacity 0.2s; }
+        .btn-confirmar:active { opacity: 0.8; }
+        .btn-confirmar:disabled { background: var(--cinza-texto); cursor: not-allowed; }
+        .info-divida { background: var(--preto-deep); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; }
+        .info-extra { font-size: 0.75rem; color: var(--cinza-texto); text-align: center; margin-top: -5px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <button class="btn-voltar" onclick="window.history.back()">
+            <i data-lucide="chevron-left"></i>
+        </button>
+        <h2>Pagamento</h2>
+    </header>
+
+    <div class="info-divida">
+        <span id="nome-cliente" style="font-size: 0.8rem; opacity: 0.8; text-transform: uppercase;">Carregando...</span>
+        <h3 id="nome-divida" style="margin: 10px 0 0 0;">Carregando...</h3>
+    </div>
+
+    <div class="info-extra" id="status-parcela">Calculando próxima parcela...</div>
+
+    <div class="input-card">
+        <label>VALOR A PAGAR (R$)</label>
+        <input type="number" id="valor-pago" placeholder="0.00" step="0.01">
+    </div>
+
+    <button class="btn-confirmar" id="btn-submit" onclick="confirmarPagamento()">Confirmar Pagamento</button>
+</div>
+
+<script src="banco.js"></script>
+<script>
+    lucide.createIcons();
+    const params = new URLSearchParams(window.location.search);
+    const clienteNome = params.get('cliente');
+    const dividaTitulo = params.get('divida');
+
+    // Inicialização
+    let dadosBanco = Banco.getDados();
+    let clienteAtual = dadosBanco.clientes.find(c => c.nome === clienteNome);
+    let dividaAtual = clienteAtual ? clienteAtual.dividas.find(d => d.titulo === dividaTitulo) : null;
+
+    if (dividaAtual) {
+        document.getElementById('nome-cliente').innerText = clienteNome;
+        document.getElementById('nome-divida').innerText = dividaTitulo;
+
+        // Verifica se a dívida já está quitada
+        if (dividaAtual.pagas >= dividaAtual.totalParcelas) {
+            document.getElementById('status-parcela').innerText = "Esta dívida já está totalmente quitada.";
+            document.getElementById('valor-pago').value = "0.00";
+            document.getElementById('valor-pago').disabled = true;
+            document.getElementById('btn-submit').disabled = true;
+            document.getElementById('btn-submit').innerText = "Dívida Quitada";
+        } else {
+            // Calcula o valor sugerido da próxima parcela
+            let proximaParcelaNum = dividaAtual.pagas + 1;
+            let ehUltima = (proximaParcelaNum === dividaAtual.totalParcelas);
+            
+            let valorSugerido = ehUltima ? (dividaAtual.valorParcela + dividaAtual.valorQuitacao) : dividaAtual.valorParcela;
+            
+            document.getElementById('status-parcela').innerText = `Referente à parcela ${proximaParcelaNum}/${dividaAtual.totalParcelas}${ehUltima ? ' (Inclui Quitação)' : ''}`;
+            document.getElementById('valor-pago').value = valorSugerido.toFixed(2);
+        }
+    } else {
+        alert("Dívida não encontrada!");
+    }
+
+    function confirmarPagamento() {
+        const valorPago = parseFloat(document.getElementById('valor-pago').value);
+        
+        if (isNaN(valorPago) || valorPago <= 0) {
+            alert("Insira um valor válido.");
+            return;
+        }
+
+        // Recarrega os dados para garantir que temos a versão mais recente
+        let dados = Banco.getDados();
+        let cliente = dados.clientes.find(c => c.nome === clienteNome);
+        let divida = cliente.dividas.find(d => d.titulo === dividaTitulo);
+
+        if (divida) {
+            if (divida.pagas >= divida.totalParcelas) {
+                alert("Esta dívida já foi totalmente paga!");
+                return;
+            }
+
+            // Se o seu sistema usa saldoRestante, ele desconta aqui
+            if(divida.saldoRestante !== undefined) {
+                divida.saldoRestante -= valorPago;
+            }
+            
+            // Incrementa a contagem de parcelas pagas
+            divida.pagas += 1; 
+
+            // Salva no localStorage usando sua função do banco.js
+            Banco.salvarDados(dados);
+
+            // Redireciona de volta para os detalhes da dívida para ver a atualização na hora
+            window.location.href = `Detalhes-divida.html?cliente=${encodeURIComponent(clienteNome)}&divida=${encodeURIComponent(dividaTitulo)}`;
+        }
+    }
+</script>
+</body>
+</html>

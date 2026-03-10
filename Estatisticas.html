@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráficos - Controle de Empréstimos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <style>
+        :root {
+            --verde-principal: #2E8B57;
+            --verde-claro: #3CB371;
+            --branco: #FFFFFF;
+            --preto: #1A1A1A;
+            --fundo: #F5F7F6;
+            --cinza: #666666;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--fundo);
+            color: var(--preto);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        header { display: flex; align-items: center; margin-bottom: 25px; }
+        .btn-voltar { background: none; border: none; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
+        
+        .grid-totais { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+
+        .card { background-color: var(--branco); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+
+        .card-icone {font-size: 1.5rem; margin-bottom: 10px;}
+
+        .card-titulo { font-size: 0.75rem; font-weight: 600; color: var(--cinza); margin: 0 0 5px 0; text-transform: uppercase; }
+        .card-valor { font-size: 1.2rem; font-weight: bold; color: var(--verde-principal); margin: 0; }
+
+        /* Estilo da seção colapsável */
+        .grafico-section {
+            background-color: var(--branco);
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .grafico-titulo {
+            padding: 15px;
+            margin: 0;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fdfdfd;
+        }
+
+        .canvas-container {
+            padding: 15px;
+            display: none; /* Escondido por padrão */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <button class="btn-voltar" onclick="window.location.href='index.html'">⬅</button>
+            <h2>Resumo Financeiro</h2>
+        </header>
+
+        <div class="grid-totais">
+            <div class="card">
+            <div class="card-icone">💸</div>
+            <p class="card-titulo">Emprestado</p>
+            <p class="card-valor">R$ 15.000</p>
+            </div>
+            <div class="card">
+                <div class="card-icone">📈</div>
+                <p class="card-titulo">A Receber</p>
+                <p class="card-valor">R$ 18.500</p>
+            </div>
+            <div class="card">
+                <div class="card-icone">✅</div>
+                <p class="card-titulo">Recebido</p>
+                <p class="card-valor">R$ 8.400</p>
+            </div>
+            <div class="card">
+                <div class="card-icone">⚠️</div>
+                <p class="card-titulo">Atrasado</p>
+                <p class="card-valor" style="color: var(--preto);">R$ 2.100</p>
+            </div>
+        </div>
+
+        <div class="grafico-section">
+            <h3 class="grafico-titulo" onclick="toggleGrafico('containerStatus')">
+                Status da Carteira <span>▼</span>
+            </h3>
+            <div id="containerStatus" class="canvas-container">
+                <canvas id="graficoStatus"></canvas>
+            </div>
+        </div>
+
+        <div class="grafico-section">
+            <h3 class="grafico-titulo" onclick="toggleGrafico('containerMensal')">
+                Movimentação Trimestral <span>▼</span>
+            </h3>
+            <div id="containerMensal" class="canvas-container">
+                <canvas id="graficoMensal"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="banco.js"></script>
+    <script>
+        // Função para mostrar/esconder gráficos
+        function toggleGrafico(id) {
+            const container = document.getElementById(id);
+            if (container.style.display === "block") {
+                container.style.display = "none";
+            } else {
+                container.style.display = "block";
+            }
+        }
+
+        // Gráfico de Status
+        const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['Recebido', 'A Receber', 'Atrasado'],
+                datasets: [{
+                    data: [8400, 18500, 2100],
+                    backgroundColor: ['#3CB371', '#2E8B57', '#1A1A1A']
+                }]
+            }
+        });
+
+        // Gráfico Mensal (Janeiro, Fevereiro, Março)
+        const ctxMensal = document.getElementById('graficoMensal').getContext('2d');
+        new Chart(ctxMensal, {
+            type: 'bar',
+            data: {
+                labels: ['Janeiro', 'Fevereiro', 'Março'],
+                datasets: [
+                    { label: 'Emprestado', data: [5000, 4000, 6000], backgroundColor: '#1A1A1A' },
+                    { label: 'Recebido', data: [3000, 2000, 4000], backgroundColor: '#2E8B57' },
+                    { label: 'A Receber', data: [2000, 2000, 2000], backgroundColor: '#3CB371' }
+                ]
+            },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+    </script>
+</body>
+</html>

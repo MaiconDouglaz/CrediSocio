@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Dívida - Premium</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <style>
+        :root { --primaria: #2E8B57; --preto-deep: #0F172A; --cinza-texto: #64748B; --branco: #FFFFFF; --fundo-gradiente: #F8FAFC; --alerta: #F59E0B; --fundo-alerta: #FFFBEB; --sucesso: #10B981; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--fundo-gradiente); color: var(--preto-deep); }
+        .container { width: 100%; max-width: 400px; margin: 0 auto; padding: 24px; padding-bottom: 100px; }
+        
+        /* Card Principal */
+        .resumo-divida { background: var(--preto-deep); color: var(--branco); padding: 24px; border-radius: 24px; margin-bottom: 20px; }
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .valor-item span { font-size: 0.7rem; opacity: 0.7; text-transform: uppercase; display: block; }
+        .valor-item b { font-size: 1rem; }
+        .text-verde { color: var(--sucesso); }
+
+        /* Lista */
+        .parcela-card { background: var(--branco); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 5px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .parcela-card.paga { border-left-color: var(--sucesso); background: #F0FDF4; }
+        .parcela-card.ultima { border-left-color: var(--alerta); background: var(--fundo-alerta); }
+        
+        .badge { font-size: 0.65rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
+        .bg-pago { background: #D1FAE5; color: #065F46; }
+        .bg-pendente { background: #F3F4F6; color: #6B7280; }
+        .bg-quitacao { background: #FEF3C7; color: #92400E; }
+
+        .btn-flutuante { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primaria); color: var(--branco); border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+            <button onclick="window.history.back()" style="border:none; background:white; padding:10px; border-radius:10px;"><i data-lucide="chevron-left"></i></button>
+            <h2>Detalhes</h2>
+        </header>
+
+        <div class="resumo-divida">
+            <span style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase;" id="display-cliente"></span>
+            <h3 style="margin: 5px 0;" id="display-divida"></h3>
+            <div style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 15px;" id="meta-info"></div>
+            <div class="grid-info">
+                <div class="valor-item"><span>Total da Dívida</span><b id="total-divida"></b></div>
+                <div class="valor-item"><span>Total Pago</span><b id="total-pago" class="text-verde"></b></div>
+            </div>
+        </div>
+
+        <h3 style="font-size: 1rem; margin-bottom: 15px;">Cronograma de Pagamento</h3>
+        <div id="lista-parcelas"></div>
+
+        <button class="btn-flutuante" onclick="irParaPagamento()"><i data-lucide="dollar-sign"></i></button>
+    </div>
+
+    <script src="banco.js"></script>
+    <script>
+        lucide.createIcons();
+        const params = new URLSearchParams(window.location.search);
+        const nomeCliente = params.get('cliente');
+        const tituloDivida = params.get('divida');
+
+        function renderizar() {
+            const dados = Banco.getDados();
+            const cliente = dados.clientes.find(c => c.nome === nomeCliente);
+            const div = cliente.dividas.find(d => d.titulo === tituloDivida);
+
+            document.getElementById('display-cliente').innerText = nomeCliente;
+            document.getElementById('display-divida').innerText = div.titulo;
+            document.getElementById('meta-info').innerText = `Empréstimo: ${div.data} • ${div.frequencia}`;
+            document.getElementById('total-divida').innerText = div.valorTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+            
+            const container = document.getElementById('lista-parcelas');
+            container.innerHTML = "";
+
+            let totalPagoCalculado = 0;
+
+            // Extrai dia, mês e ano da data do primeiro vencimento (esperado: DD/MM/AAAA)
+            let partesData = div.dataVencimento.split('/');
+            // Lembrete: em JavaScript, os meses vão de 0 (Jan) a 11 (Dez)
+            let dataBaseVencimento = new Date(partesData[2], partesData[1] - 1, partesData[0]);
+
+            for (let i = 1; i <= div.totalParcelas; i++) {
+                let ehUltima = (i === div.totalParcelas);
+                let valor = (ehUltima) ? (div.valorParcela + div.valorQuitacao) : div.valorParcela;
+                let status = (i <= div.pagas) ? 'paga' : 'pendente';
+                
+                // Soma no total pago se o status for 'paga'
+                if (status === 'paga') {
+                    totalPagoCalculado += valor;
+                }
+
+                // Cálculo dinâmico da data de vencimento desta parcela
+                let dataParcela = new Date(dataBaseVencimento);
+                if (i > 1) {
+                    let freq = div.frequencia ? div.frequencia.toLowerCase() : 'mensal';
+                    if (freq.includes('mensal')) {
+                        dataParcela.setMonth(dataParcela.getMonth() + (i - 1));
+                    } else if (freq.includes('semanal')) {
+                        dataParcela.setDate(dataParcela.getDate() + ((i - 1) * 7));
+                    } else if (freq.includes('diári') || freq.includes('diari')) {
+                        dataParcela.setDate(dataParcela.getDate() + (i - 1));
+                    }
+                }
+
+                // Formata de volta para DD/MM/AAAA
+                let diaVenc = String(dataParcela.getDate()).padStart(2, '0');
+                let mesVenc = String(dataParcela.getMonth() + 1).padStart(2, '0');
+                let anoVenc = dataParcela.getFullYear();
+                let dataVencimentoFormatada = `${diaVenc}/${mesVenc}/${anoVenc}`;
+                
+                container.innerHTML += `
+                    <div class="parcela-card ${status} ${ehUltima ? 'ultima' : ''}">
+                        <div>
+                            <div style="font-weight:700;">${i}/${div.totalParcelas} ${ehUltima ? ' (Quitação)' : ''}</div>
+                            <div style="font-size: 0.75rem; color: var(--cinza-texto);">Venc: ${dataVencimentoFormatada}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight:800;">R$ ${valor.toFixed(2).replace('.',',')}</div>
+                            <span class="badge ${status === 'paga' ? 'bg-pago' : (ehUltima ? 'bg-quitacao' : 'bg-pendente')}">
+                                ${status === 'paga' ? 'Pago' : 'Pendente'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Exibe o Total Pago calculado na tela
+            document.getElementById('total-pago').innerText = totalPagoCalculado.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+        }
+
+        function irParaPagamento() { window.location.href = `adicionar_pagamento.html?cliente=${encodeURIComponent(nomeCliente)}&divida=${encodeURIComponent(tituloDivida)}`; }
+        renderizar();
+    </script>
+</body>
+</html>

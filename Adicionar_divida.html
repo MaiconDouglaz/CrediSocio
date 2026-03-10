@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Dívida - Premium</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <style>
+        :root {
+            --primaria: #2E8B57;
+            --primaria-clara: #E8F5E9;
+            --preto-deep: #0F172A;
+            --cinza-texto: #64748B;
+            --cinza-claro: #94A3B8;
+            --branco: #FFFFFF;
+            --fundo-gradiente: #F4F6F8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--fundo-gradiente);
+            color: var(--preto-deep);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            box-sizing: border-box;
+            padding-bottom: 40px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn-voltar {
+            background: var(--branco);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgb(0 0 0 / 0.05);
+            cursor: pointer;
+        }
+
+        header h2 { margin: 0; font-size: 1.3rem; }
+
+        /* Badge do Cliente */
+        .cliente-badge {
+            background-color: var(--primaria-clara);
+            color: var(--primaria);
+            border: 1px solid #C8E6C9;
+            padding: 10px 16px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+        }
+
+        /* Estilo dos Inputs como Cards */
+        .input-card {
+            background: var(--branco);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgb(0 0 0 / 0.02);
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .input-card:focus-within {
+            border-color: var(--primaria);
+            box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+        }
+
+        .input-card label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--cinza-texto);
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-wrapper i {
+            color: var(--preto-deep);
+            width: 20px;
+            height: 20px;
+        }
+
+        input, select {
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            width: 100%;
+            background: transparent;
+            color: var(--preto-deep);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        input::placeholder { color: var(--cinza-claro); }
+
+        /* Card Total a Receber */
+        .card-total {
+            background: var(--preto-deep);
+            color: var(--branco);
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2);
+        }
+
+        .card-total span {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--cinza-claro);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .card-total h3 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--primaria);
+        }
+
+        /* Botão Salvar */
+        .btn-salvar {
+            width: 100%;
+            background: var(--primaria);
+            color: var(--branco);
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(46, 139, 87, 0.2);
+        }
+
+        .btn-salvar:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <button class="btn-voltar" onclick="window.history.back()">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <h2>Nova Dívida</h2>
+        </header>
+
+        <div class="cliente-badge">
+            <i data-lucide="user" size="18"></i>
+            <span id="nome-cliente-exibicao">Cliente: Não Identificado</span>
+        </div>
+
+        <div class="input-card">
+            <label>TÍTULO DA DÍVIDA</label>
+            <div class="input-wrapper">
+                <i data-lucide="tag"></i>
+                <input type="text" id="titulo" placeholder="Ex: Empréstimo Pessoal">
+            </div>
+        </div>
+
+        <div class="input-card">
+            <label>VALOR EMPRESTADO</label>
+            <div class="input-wrapper">
+                <i data-lucide="dollar-sign"></i>
+                <input type="number" id="valorEmprestado" step="0.01" placeholder="0.00">
+            </div>
+        </div>
+
+        <div class="input-card">
+            <label>FREQUÊNCIA DE PAGAMENTO</label>
+            <div class="input-wrapper">
+                <i data-lucide="calendar-clock"></i>
+                <select id="frequencia">
+                    <option value="Diário">Diário</option>
+                    <option value="Semanal">Semanal</option>
+                    <option value="Mensal" selected>Mensal</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="input-card">
+            <label>DATA DO 1º VENCIMENTO</label>
+            <div class="input-wrapper">
+                <i data-lucide="calendar"></i>
+                <input type="date" id="dataVencimento">
+            </div>
+        </div>
+
+        <div class="input-card">
+            <label>QUANTIDADE DE PARCELAS</label>
+            <div class="input-wrapper">
+                <i data-lucide="hash"></i>
+                <input type="number" id="parcelas" placeholder="Ex: 3" min="1">
+            </div>
+        </div>
+
+        <div class="input-card">
+            <label>VALOR DA PARCELA</label>
+            <div class="input-wrapper">
+                <i data-lucide="coins"></i>
+                <input type="number" id="valorParcela" step="0.01" placeholder="0.00">
+            </div>
+        </div>
+
+        <div class="input-card">
+            <label>VALOR DE QUITAÇÃO (OPCIONAL)</label>
+            <div class="input-wrapper">
+                <i data-lucide="piggy-bank"></i>
+                <input type="number" id="valorQuitacao" step="0.01" placeholder="0.00">
+            </div>
+        </div>
+
+        <div class="card-total">
+            <span>TOTAL A RECEBER</span>
+            <h3 id="total-receber">R$ 0,00</h3>
+        </div>
+
+        <button class="btn-salvar" onclick="processarCadastro()">
+            <i data-lucide="check-circle-2"></i>
+            Salvar Dívida
+        </button>
+    </div>
+
+    <script src="banco.js"></script>
+    <script>
+        lucide.createIcons();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const nomeCliente = urlParams.get('cliente');
+
+        if (nomeCliente) {
+            document.getElementById('nome-cliente-exibicao').innerText = "Cliente: " + nomeCliente;
+        }
+
+        // Função de Cálculo em Tempo Real (Soma parcelas + quitação)
+        function calcularTotal() {
+            const qtdParcelas = parseInt(document.getElementById('parcelas').value) || 0;
+            const valorParcela = parseFloat(document.getElementById('valorParcela').value) || 0;
+            const valorQuitacao = parseFloat(document.getElementById('valorQuitacao').value) || 0;
+            
+            // Lógica: (Quantidade x Valor da Parcela) + Valor de Quitação
+            const total = (qtdParcelas * valorParcela) + valorQuitacao;
+            
+            document.getElementById('total-receber').innerText = total.toLocaleString('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL' 
+            });
+
+            return total; // Retorna o valor para ser usado no salvamento
+        }
+
+        // Ouvintes de eventos para atualizar o card preto instantaneamente
+        document.getElementById('parcelas').addEventListener('input', calcularTotal);
+        document.getElementById('valorParcela').addEventListener('input', calcularTotal);
+        document.getElementById('valorQuitacao').addEventListener('input', calcularTotal);
+
+        function processarCadastro() {
+            const titulo = document.getElementById('titulo').value;
+            const valorEmprestado = parseFloat(document.getElementById('valorEmprestado').value);
+            const frequencia = document.getElementById('frequencia').value;
+            const dataVencimentoRaw = document.getElementById('dataVencimento').value;
+            const totalParcelas = parseInt(document.getElementById('parcelas').value);
+            const valorParcela = parseFloat(document.getElementById('valorParcela').value);
+            const valorQuitacao = parseFloat(document.getElementById('valorQuitacao').value) || 0;
+
+            if (!titulo || isNaN(valorEmprestado) || !dataVencimentoRaw || isNaN(totalParcelas) || isNaN(valorParcela)) {
+                alert("Por favor, preencha todos os campos obrigatórios.");
+                return;
+            }
+
+            // Usamos a mesma lógica de soma para salvar o valor total correto no banco
+            const valorTotalFinal = (totalParcelas * valorParcela) + valorQuitacao;
+
+            const hoje = new Date();
+            const dataCriacaoSistema = hoje.toLocaleDateString('pt-BR');
+            const dataVencimentoFormatada = dataVencimentoRaw.split('-').reverse().join('/');
+
+            const novaDivida = {
+                titulo: titulo.toUpperCase(),
+                valorEmprestado: valorEmprestado,
+                valorTotal: valorTotalFinal, 
+                valorParcela: valorParcela,
+                pagas: 0,
+                totalParcelas: totalParcelas,
+                saldoRestante: valorTotalFinal, // Começa devendo o total com a quitação inclusa
+                frequencia: frequencia,
+                dataVencimento: dataVencimentoFormatada,
+                valorQuitacao: valorQuitacao,
+                data: dataCriacaoSistema 
+            };
+
+            const sucesso = Banco.salvarNovaDivida(nomeCliente, novaDivida);
+
+            if (sucesso) {
+                window.location.href = `detalhes_cliente.html?cliente=${encodeURIComponent(nomeCliente)}`;
+            } else {
+                alert("Erro ao salvar: Cliente não encontrado.");
+            }
+        }
+    </script>
+</body>
+</html>

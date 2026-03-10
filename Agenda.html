@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda - Controle de Empréstimos</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <style>
+        :root {
+            --verde-principal: #2E8B57;
+            --verde-claro: #3CB371;
+            --branco: #FFFFFF;
+            --preto: #1A1A1A;
+            --fundo: #F5F7F6;
+            --cinza-texto: #666;
+            --azul-destaque: #007AFF;
+            --laranja-pendente: #FF9500;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--fundo);
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-voltar {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        /* Estilo do Calendário Simplificado */
+        .calendario-box {
+            background: var(--branco);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .mes-titulo {
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .dias-semana {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            font-size: 0.8rem;
+            color: var(--cinza-texto);
+            margin-bottom: 10px;
+        }
+
+        .grade-dias {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .dia {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Dia Selecionado (Ex: Dia 20 da sua foto) */
+        .dia.selecionado {
+            background-color: var(--azul-destaque);
+            color: var(--branco);
+        }
+
+        .notificacao-numero {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: #1A1A1A;
+            color: white;
+            font-size: 0.6rem;
+            padding: 1px 4px;
+            border-radius: 4px;
+        }
+
+        /* Lista de Cards */
+        .lista-recebimentos {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card-recebimento {
+            background: var(--branco);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 6px solid; /* Cor dinâmica */
+        }
+
+        .status-em-dia { border-left-color: var(--verde-principal); }
+        .status-atrasado { border-left-color: var(--preto); }
+
+        .card-header {
+            font-size: 0.8rem;
+            color: var(--cinza-texto);
+            margin-bottom: 5px;
+        }
+
+        .card-nome {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin: 5px 0;
+        }
+
+        .card-valor {
+            color: var(--verde-principal);
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 10px;
+            color: white;
+        }
+
+        .badge-pendente { background-color: var(--laranja-pendente); }
+        .badge-recebido { background-color: var(--azul-destaque); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <button class="btn-voltar" onclick="window.location.href='index.html'">⬅</button>
+            <h2 id="titulo-agenda">Agenda de Março</h2>
+        </header>
+
+        <div class="calendario-box">
+            <div class="mes-titulo">
+                <span>❮</span> 
+                <span>Março de 2026</span> 
+                <span>❯</span>
+            </div>
+            <div class="dias-semana">
+                <span>dom</span><span>seg</span><span>ter</span><span>qua</span><span>qui</span><span>sex</span><span>sáb</span>
+            </div>
+            <div class="grade-dias" id="grade-dias">
+                </div>
+        </div>
+
+        <div class="lista-recebimentos" id="lista-cards">
+            <p style="text-align: center; color: #999;">Selecione um dia com marcação para ver os detalhes.</p>
+        </div>
+    </div>
+
+    <script src="banco.js"></script>
+    <script>
+        // Dados de exemplo baseados no seu pedido
+        const recebimentos = {
+            "2026-03-20": [
+                { nome: "Cliente 1", valor: "111,11", status: "Recebido", atrasado: false },
+                { nome: "Cliente 1", valor: "1.231,23", status: "Pendente", atrasado: true }
+            ],
+            "2026-03-24": [
+                { nome: "Fulano de Tal", valor: "500,00", status: "Pendente", atrasado: false },
+                { nome: "Beltrano", valor: "250,00", status: "Pendente", atrasado: false },
+                { nome: "Ciclano", valor: "100,00", status: "Pendente", atrasado: false }
+            ]
+        };
+
+        function gerarCalendario() {
+            const grade = document.getElementById('grade-dias');
+            // Gerando 31 dias para o exemplo
+            for (let i = 1; i <= 31; i++) {
+                const dataKey = `2026-03-${i < 10 ? '0' + i : i}`;
+                const divDia = document.createElement('div');
+                divDia.className = 'dia';
+                divDia.innerText = i;
+
+                // Se houver recebimento nesse dia, coloca a marcação
+                if (recebimentos[dataKey]) {
+                    divDia.classList.add('selecionado');
+                    const span = document.createElement('span');
+                    span.className = 'notificacao-numero';
+                    span.innerText = recebimentos[dataKey].length;
+                    divDia.appendChild(span);
+                    
+                    divDia.onclick = () => mostrarCards(dataKey);
+                }
+                
+                grade.appendChild(divDia);
+            }
+        }
+
+        function mostrarCards(data) {
+            const container = document.getElementById('lista-cards');
+            const lista = recebimentos[data];
+            container.innerHTML = ""; // Limpa a lista atual
+
+            lista.forEach(item => {
+                const borderClass = item.atrasado ? 'status-atrasado' : 'status-em-dia';
+                const badgeClass = item.status === 'Recebido' ? 'badge-recebido' : 'badge-pendente';
+                
+                container.innerHTML += `
+                    <div class="card-recebimento ${borderClass}">
+                        <div class="card-header">${data} - ID: 123</div>
+                        <div class="card-nome">${item.nome}</div>
+                        <div class="card-valor">R$ ${item.valor}</div>
+                        <div class="badge ${badgeClass}">${item.status}</div>
+                    </div>
+                `;
+            });
+        }
+
+        gerarCalendario();
+    </script>
+</body>
+</html>

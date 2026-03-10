@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Clientes - Premium</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <style>
+        :root {
+            --primaria: #2E8B57;
+            --primaria-hover: #3CB371;
+            --preto-deep: #0F172A;
+            --cinza-corpo: #64748B;
+            --branco: #FFFFFF;
+            --fundo-gradiente: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--fundo-gradiente);
+            color: var(--preto-deep);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Topo com navegação */
+        header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .btn-voltar {
+            background: var(--branco);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: 0.2s;
+        }
+
+        .btn-voltar:hover { transform: translateX(-3px); background: #f1f5f9; }
+
+        h2 { font-size: 1.5rem; font-weight: 700; margin: 0; letter-spacing: -0.025em; }
+
+        /* Cards de Opção */
+        .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .card-opcao {
+            background: var(--branco);
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Efeito de brilho no hover */
+        .card-opcao::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+
+        .card-opcao:hover::after { left: 100%; }
+
+        .card-opcao:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+        }
+
+        /* Estilo Individual dos Botões */
+        .btn-novo {
+            background: var(--primaria);
+            color: var(--branco);
+        }
+        .btn-novo .icon-wrapper { background: rgba(255, 255, 255, 0.2); }
+
+        .btn-lista {
+            background: var(--branco);
+            color: var(--preto-deep);
+        }
+        .btn-lista .icon-wrapper { background: #f1f5f9; color: var(--primaria); }
+
+        .texto-btn {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .texto-btn b { font-size: 1.15rem; margin-bottom: 4px; }
+        .texto-btn span { font-size: 0.85rem; opacity: 0.8; font-weight: 400; }
+
+        /* Rodapé Informativo */
+        .footer-info {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--cinza-corpo);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <button class="btn-voltar" onclick="window.location.href='index.html'">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <h2>Gestão de Clientes</h2>
+        </header>
+
+        <div class="menu-grid">
+            <div class="card-opcao btn-novo" onclick="window.location.href='cadastro_form.html'">
+                <div class="icon-wrapper">
+                    <i data-lucide="user-plus" size="32"></i>
+                </div>
+                <div class="texto-btn">
+                    <b>Novo Cliente</b>
+                    <span>Registrar empréstimo e prazos</span>
+                </div>
+            </div>
+
+            <div class="card-opcao btn-lista" onclick="window.location.href='lista_clientes.html'">
+                <div class="icon-wrapper">
+                    <i data-lucide="users" size="32"></i>
+                </div>
+                <div class="texto-btn">
+                    <b>Lista de Clientes</b>
+                    <span>Ver ativos, histórico e dívidas</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-info">
+            Sistema de Gestão Particular v1.0
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
